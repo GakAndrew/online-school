@@ -1,0 +1,179 @@
+<mat-form-field
+  *ngIf="!disableColumnFilter"
+  class="w-full dense-input no-label no-subscript py-2 px-2"
+  appearance="outline"
+  floatLabel="never">
+  <input #filter id="filter" type="text" matInput i18n-placeholder placeholder="Поиск" />
+  <mat-icon matPrefix class="secondary-text">search</mat-icon>
+</mat-form-field>
+
+<mat-divider></mat-divider>
+
+<mat-table
+  [cslOverlayLoader]="isLoading()"
+  matSort
+  [matSortActive]="sortModel?.active"
+  [matSortDirection]="sortModel?.direction"
+  (matSortChange)="sortModelChange.emit($event)"
+  [dataSource]="dataSource"
+  cslPerfectScrollbar>
+  <ng-container matColumnDef="select">
+    <mat-header-cell class="max-w-16" [ngClass]="headerCellStyles?.['select']" *matHeaderCellDef="let row">
+      <mat-checkbox
+        [disabled]="!rowSelection"
+        (change)="selectedAll($event.checked)"
+        [checked]="isAllSelected()"
+        [indeterminate]="rowsSelection.selected.length > 0 && !isAllSelected()">
+      </mat-checkbox>
+    </mat-header-cell>
+    <mat-cell class="max-w-16" [ngClass]="cellStyles?.['select']" *matCellDef="let row">
+      <mat-checkbox
+        [disabled]="!rowSelection"
+        (click)="$event.stopPropagation()"
+        (change)="onRowSelectionChange(row)"
+        [checked]="rowActive(row)">
+      </mat-checkbox>
+    </mat-cell>
+  </ng-container>
+  <ng-container *ngFor="let column of columns" [matColumnDef]="column.field">
+    <mat-header-cell
+      [ngClass]="getNgHeaderClass(column)?.[column.field]"
+      [mat-sort-header]="column.field"
+      [disabled]="disableMatSortHeader(column)"
+      (dblclick)="columnHeaderDoubleClick.emit({ field: column.field })"
+      (click)="columnHeaderClick.emit({ field: column.field })"
+      *matHeaderCellDef
+      i18n
+      >{{ column?.headerName }}</mat-header-cell
+    >
+    <mat-cell
+      [ngClass]="getNgCellClass(column, row)?.[column.field]"
+      (dblclick)="cellDoubleClick.emit({ row, value: row[column.field], column })"
+      (click)="cellClick.emit({ row, value: row[column.field], column })"
+      *matCellDef="let row"
+      [matTooltipDisabled]="!column.description"
+      [matTooltip]="column?.description">
+      <ng-container [ngSwitch]="column?.type">
+        <ng-container *ngSwitchCase="'singleSelect'">
+          <mat-form-field appearance="outline" class="w-full mini-input no-subscript no-label">
+            <mat-select
+              [value]="row[column.field]"
+              (click)="$event.stopPropagation()"
+              (selectionChange)="singleSelectChange.emit({ row: row, value: $event.value })">
+              <mat-option
+                i18n
+                *ngFor="let option of column.valueOptions"
+                [value]="getOptionValue ? getOptionValue(option) : option"
+                >{{ getOptionLabel ? getOptionLabel(option) : option }}</mat-option
+              >
+            </mat-select>
+          </mat-form-field>
+        </ng-container>
+        <ng-container *ngSwitchCase="'boolean'">
+          <mat-checkbox disabled [checked]="getCellValue(row, row[column.field], column)"> </mat-checkbox>
+        </ng-container>
+        <ng-container *ngSwitchCase="'actions'">
+          <ng-container *ngFor="let action of getActions(row); trackBy: trackByFn">
+            <div
+              i18n
+              *ngIf="!action.showInMenu && (action.visible ?? true)"
+              class="flex flex-row justify-start items-center gap-2"
+              ><button
+                mat-icon-button
+                (click)="onActionClick($event, action)"
+                [matTooltip]="action.tooltip"
+                [matTooltipDisabled]="!action.tooltip">
+                <mat-icon>{{ action.icon }}</mat-icon>
+                {{ action.label }}
+              </button></div
+            >
+          </ng-container>
+
+          <button
+            showInMenu
+            [actions]="getActions(row)"
+            mat-icon-button
+            [matMenuTriggerFor]="tableMenu"
+            (click)="$event.stopPropagation()">
+            <mat-icon>more_vert</mat-icon>
+          </button>
+
+          <mat-menu #tableMenu>
+            <ng-container *ngFor="let action of getActions(row); let i = index; trackBy: trackByFn">
+              <button
+                i18n
+                mat-menu-item
+                *ngIf="action.showInMenu && (action.visible ?? true)"
+                (click)="$event.stopPropagation(); action.onClick()"
+                ><mat-icon *ngIf="action.icon">{{ action.icon }}</mat-icon> {{ action.label }}</button
+              >
+            </ng-container>
+          </mat-menu>
+        </ng-container>
+        <ng-container *ngSwitchDefault>
+          <ng-container *ngIf="column.renderCell; else notCustomRender">
+            <ng-container
+              *ngComponentOutlet="
+                column.renderCell(row[column.field]).component;
+                inputs: {
+                  row: row,
+                  value: getCellValue(row, row[column.field], column),
+                  formattedValue: getCellFormattedValue(row, row[column.field], column)
+                };
+                injector: column.renderCell(row[column.field]).injector
+              "></ng-container>
+          </ng-container>
+
+          <ng-template #notCustomRender>
+            <span
+              i18n
+              class="text-truncate"
+              [cslOverflowTooltip]="getCellFormattedValue(row, row[column.field], column)"
+              >{{ getCellFormattedValue(row, row[column.field], column) }}</span
+            >
+          </ng-template>
+        </ng-container>
+      </ng-container>
+    </mat-cell>
+
+    <!-- Footer cell definition -->
+    <mat-footer-cell *matFooterCellDef>
+      <ng-container *ngIf="column.aggregation">
+        {{ renderFooterCell(column) }}
+      </ng-container>
+    </mat-footer-cell>
+  </ng-container>
+
+  <div *matNoDataRow i18n class="mat-title text-uppercase secondary-text text-center mt-9">Нет данных</div>
+
+  <!-- Header and Row Declarations -->
+  <mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></mat-header-row>
+  <mat-row
+    (dblclick)="rowDoubleClick.emit(row)"
+    (click)="rowClick.emit({ row }); !disableRowSelectionOnClick ? onRowSelectionChange(row) : ''"
+    [class]="'cursor-pointer'"
+    [class.mat-row-active]="rowActive(row)"
+    *matRowDef="let row; columns: displayedColumns">
+  </mat-row>
+
+  <!-- Footer row definition -->
+  <mat-footer-row *matFooterRowDef="displayedColumns" [ngClass]="{ hidden: !showFooter }"></mat-footer-row>
+</mat-table>
+
+<mat-divider *ngIf="!hideFooter"></mat-divider>
+
+<div class="flex flex-row items-center justify-between" [ngClass]="{ hidden: hideFooter }">
+  <span i18n class="px-2" *ngIf="!hideFooterSelectedRowCount"
+    >Выбрано {{ rowsSelection.selected.length | i18nPlural : selectedRowsCountMessageMapping }}</span
+  >
+  <mat-paginator
+    [ngClass]="{ hidden: hideFooterPagination }"
+    #paginator
+    class="ml-auto"
+    (page)="onPaginationModelChange($event)"
+    [length]="paginationModel?.length"
+    [pageIndex]="paginationModel?.pageIndex"
+    [pageSize]="paginationModel?.pageSize"
+    [pageSizeOptions]="pageSizeOptions">
+  </mat-paginator>
+</div>
