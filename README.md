@@ -1,21 +1,47 @@
 # OnlineSchool
 
-Project Description:
-The project is a web-based online school platform that allows students to book extra classes to prepare for exams or to help them understand specific topics. There are two main roles in the system: student and teacher.
-The main functions are:
-Registration:
-In the first phase, students will register via email. In the future it is planned to add registration via Google.
-The mandatory fields for registration are first name, last name, email, phone and class or course.
-Booking system:
-Once logged in, the student can select the subject, date and time of the class, and optionally select a teacher.
-If the student does not select a teacher, the request can be accepted by any available teacher.
-Some time slots may not be available due to already booked classes or teacher unavailability at that time.
-Booking Interface:
-The date and time selection process should be intuitive and user friendly.
-Date selection: The user sees a calendar on which they can select available days for the class. Unavailable days should be visually marked so that the user cannot select them.
-Time selection: After selecting the date, the user selects the time interval. The interface allows the user to select the time in increments of, for example, 5 minutes. The user can also manually enter the desired start and end time of the class.
-Teachers' work:
-Each teacher can edit his/her available hours for conducting classes.
-Integration with Googl is being considered
+## Описание проекта
 
+OnlineSchool - это веб-платформа для онлайн-обучения, которая позволяет ученикам бронировать дополнительные занятия для подготовки к экзаменам или для лучшего понимания конкретных тем. В системе есть две основные роли: ученик и учитель.
+
+### Основные функции
+
+1. **Регистрация:**
+   - На первом этапе ученики регистрируются по электронной почте.
+   - В будущем планируется добавить регистрацию через Google.
+   - Обязательные поля для регистрации: имя, фамилия, email, телефон и класс или курс.
+
+2. **Система бронирования:**
+   - После входа в систему ученик может выбрать предмет, дату и время занятия, а также опционально выбрать учителя.
+   - Если ученик не выбирает учителя, запрос может быть принят любым доступным учителем.
+   - Некоторые временные слоты могут быть недоступны из-за уже забронированных занятий или недоступности учителя в это время.
+
+3. **Интерфейс бронирования:**
+   - Процесс выбора даты и времени должен быть интуитивно понятным и удобным для пользователя.
+   - Выбор даты: пользователь видит календарь, на котором может выбрать доступные дни для занятия. Недоступные дни должны быть визуально отмечены.
+   - Выбор времени: после выбора даты пользователь выбирает временной интервал. Интерфейс позволяет выбирать время с шагом, например, в 5 минут. Пользователь также может вручную ввести желаемое время начала и окончания занятия.
+
+4. **Работа учителей:**
+   - Каждый учитель может редактировать свои доступные часы для проведения занятий.
+
+## Технологии
+
+- Angular 18
+- Firebase
+- Angular Material
+- RxJS
+- Tailwind CSS
+
+## Установка и запуск
+
+1. Клонируйте репозиторий
+2. Установите зависимости: `npm install`
+3. Запустите проект: `ng serve`
+
+## Разработка
+
+При разработке следуйте следующим принципам:
+- Используйте стратегию обнаружения изменений OnPush в Angular 18
+- Интегрируйте signal() везде, где необходимо реактивное управление состоянием
+- Применяйте компоненты Angular Material и RxJS, следуя лучшим практикам
 
